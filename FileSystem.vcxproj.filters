@@ -30,5 +30,13 @@
     <ClInclude Include="disk\Track.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="iosystem\IOSystem.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="iosystem\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

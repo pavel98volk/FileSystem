@@ -74,6 +74,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)FileSystem/</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,6 +116,10 @@
     <ClInclude Include="disk\LDisk.hpp" />
     <ClInclude Include="disk\Sector.hpp" />
     <ClInclude Include="disk\Track.hpp" />
+    <ClInclude Include="iosystem\IOSystem.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="iosystem\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
