@@ -110,6 +110,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="disk\Cylinder.hpp" />
+    <ClInclude Include="includes.hpp" />
+    <ClInclude Include="disk\LDisk.hpp" />
+    <ClInclude Include="disk\Sector.hpp" />
+    <ClInclude Include="disk\Track.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
