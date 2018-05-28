@@ -117,4 +117,13 @@ public:
 			ldisk.cylinders[blockLocation[0]].tracks[blockLocation[1]].sectors[blockLocation[2]].bytes[i] = bytes[i];
 		}
 	}
+
+	//added some getters for file system
+
+	int getBlockLength() {
+		return blockLength;
+	}
+	int getBlockCount() {
+		return blocksAmount;
+	}
 };
