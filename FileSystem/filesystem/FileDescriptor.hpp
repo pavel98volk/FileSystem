@@ -1,24 +1,24 @@
 #pragma once
 
 #include <vector>
-template <int n>
+template <int sizeInBytes>
 struct FileDescriptor
 {
-	int fileLengthInBytes;
-	std::vector<int> blockNumbers;
+	std::vector<int> data;
 
 	FileDescriptor()
 	{
-		fileLengthIntBytes = 0;
-		blockNumbers.assign(n, -1);
+		data.assign(sizeInBytes, 0);
+		data[0] = 1;
+		data[1] = 0;
 	}
 	FileDescriptor(int const& fileLengthInBytes, std::vector<int> const& blockNumbers)
 	{
-		this->fileLengthInBytes = fileLengthInBytes;
-		this->blockNumbers.assign(blockNumbers.begin(), blockNumbers.end());
+		this->data.assign(blockNumbers.begin(), blockNumbers.end());
+		this->data.insert(0, fileLengthInBytes);
 	}
 	bool isFree() {
-		if ((fileLengthInBytes != 0) && blockNumbers[0] == 0) return true; //unreal situation
+		if ((data[0] != 0) && data[1] == 0) return true; //unreal situation
 		else return false;
 	}
 };
