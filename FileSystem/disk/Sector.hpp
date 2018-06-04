@@ -9,6 +9,6 @@ struct Sector
 
 	Sector()
 	{
-		bytes.reserve(bytesAmount);
+		bytes.resize(bytesAmount);
 	}
 };

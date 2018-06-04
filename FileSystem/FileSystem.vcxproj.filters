@@ -36,6 +36,9 @@
     <ClInclude Include="filesystem\FileDescriptor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FileSystem.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="iosystem\main.cpp">
