@@ -7,13 +7,14 @@ void main() {
 	LDisk disk;
 	IOSystem io(disk);
 	FileSystem<4, 4> fs(io);
+
 	fs.clear();
+
 	fs.createFile("one");
 	fs.createFile("two");
 	fs.createFile("three");
 	fs.createFile("three");
 
-	//fs.createFile("fla");
 	std::cout << fs.metadataToPrettyString();
 	system("pause");
 	return;
