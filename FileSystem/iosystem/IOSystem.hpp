@@ -90,11 +90,6 @@ public:
 
 	void readBlock(int const& blockNumber, std::vector<char> & destination)
 	{
-		//debug
-		if (blockNumber >= 7) {
-			volatile int k = 1;
-		}
-
 		if (blockNumber < 0 || blockNumber >= blocksAmount)
 		{
 			std::runtime_error("Block number " + std::to_string(blockNumber) + " should be >= 0 and < " + std::to_string(blocksAmount));

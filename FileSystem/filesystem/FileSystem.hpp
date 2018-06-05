@@ -38,6 +38,12 @@ public:
 	std::string metadataToPrettyString();
 	FileSystem(IOSystem& io);
 	void clear();
+
+	//creates new file by allocating file descriptor and registering in the directory;
+	bool createFile(std::string name);
+	//destroys the file. frees allocated memory.
+	bool destroyFile(std::string name);
+protected:
 	//rewrites only already allocated blocks. blockNumber is the number of block in a file.
 	bool rewriteBlock(int fileDescrNum, int blockNumber, std::vector<char>& data);
 	//reads only already allocated blocks. blockNumber is the number of block in a file.
@@ -46,12 +52,8 @@ public:
 	bool addBlock(int fileDescrNum, std::vector<char>& data);
 	//removes last block from the end of the file. todo.
 	bool removeLastBlock(int fileDescrNum);
-	//creates new file by allocating file descriptor and registering in the directory;
-	bool createFile(std::string name);
-
 	// returns the number of the descriptor if found, if not - returns 0;
 	int getDescriptorByFileName(std::string name);
-private:
 	
 	
 };
@@ -110,18 +112,15 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 	readBlock(0, blockNum - 1, buff);
 	len %= io.getBlockLength();
 	int i = 0;
-	while ((len%64!=0) && i<4) {
+	while ((len%io.getBlockLength()!=0) && i<4) {
 		buff[len] = name[i];
 		len++;
 		i++;
 	}
-	while ((len%64!=0) && i<8) {
+	while ((len%io.getBlockLength()!=0) && i<8) {
 		buff[len] = ((descriptorNum) >> (24 - 8 * (i - 4)) & 0xFF);
 		len++;
 		i++;
-	}
-	if (descriptorNum == 25) {
-		volatile int c = 0;
 	}
 	if(blockNum>0)rewriteBlock(0, blockNum - 1, buff);
 	//if(file is bigger now) make it bigger.
@@ -140,6 +139,73 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 	return true;
 }
 
+
+
+//кратна 8 bit
+template<int k, int descriptorLength>
+bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
+	//1) get the descriptor
+	int descrPos =0;
+	//2) remove the file from directory (and find the position).
+	FileDescriptor<descriptorLength> d = meta.getDescriptor(0);
+	int len = d.data[0];
+	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+	std::vector<char> buff2;
+	bool found = false; 
+	for (int i = 0; i < blockNum; i++) {
+		if (found) {
+			rewriteBlock(0, i - 1, buff);
+			buff = buff2;
+		}
+		else readBlock(0, i, buff);
+
+		for (int j = 0; (j < io.getBlockLength() / 8) && (i*io.getBlockLength() + j * 8 < len); j++) {
+			if (!found) {
+				bool compareVal = true;
+				for (int t = 0; (t < 4) && compareVal; t++)
+					if (buff[j * 8 + t] != name[t]) compareVal = false;
+				if (compareVal) {
+					found = true;
+					descrPos = getInt(j * 2 + 1, buff);
+					buff2.resize(64);
+					j--;
+				}
+			}
+			else {
+				if (j == (io.getBlockLength() / 8 - 1)) {
+					if (i*io.getBlockLength() + (j+1) * 8 < len) {
+						readBlock(0, i + 1, buff2);
+						for (int t = 0; t < 8; t++) {
+							buff[j * 8 + t] = buff2[t];
+						}
+					}
+				} 
+				else {
+					if (i*io.getBlockLength() + (j + 1) * 8 < len) {
+						for (int t= 0; t < 8; t++) {
+							buff[j * 8 + t] = buff[(j + 1) * 8 + t];
+						}
+					} else rewriteBlock(0, i, buff);
+
+				}
+			}
+		}
+	}
+	if (descrPos == 0) return false;
+
+	if ((len - 3)% io.getBlockLength() < (len - 1) % io.getBlockLength())
+		removeLastBlock(0);
+	meta.setDescriptorData(0, 0, (d.data[0] - 8));
+
+	//3) free all allocated file data
+	while (meta.getDescriptor(descrPos).data[0] > 64) {
+		removeLastBlock(descrPos);
+		meta.setDescriptorData(descrPos,0, meta.getDescriptor(descrPos).data[0]-64);
+	}
+	meta.freeDescriptor(descrPos);
+	return true;
+}
+
 template<int k, int descriptorLength>
 inline int FileSystem<k, descriptorLength>::getDescriptorByFileName(std::string name){
 	FileDescriptor<descriptorLength> d = meta.getDescriptor(0);
@@ -155,47 +221,46 @@ inline int FileSystem<k, descriptorLength>::getDescriptorByFileName(std::string 
 				return getInt(j * 2 + 1, buff);
 			}
 		}
-		int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
 	}
 	return 0;
 }
-
+//blockNumber from 0
 template<int k, int descriptorLength>
-bool FileSystem<k, descriptorLength>::rewriteBlock(int fileDescrNum, int blockNumber, std::vector<char>& data) {
+bool FileSystem<k, descriptorLength>::rewriteBlock(int fileDescrNum, int blockPos, std::vector<char>& data) {
 	FileDescriptor<descriptorLength> d = meta.getDescriptor(fileDescrNum);
 	int len = d.data[0];
 	int blockNum = (len + (io.getBlockLength()-1)) / io.getBlockLength();
-	if (blockNum == 0 || blockNum <=blockNumber) return false;
-	if (blockNumber < (descriptorLength - 1) || ((blockNumber == descriptorLength - 1) && (blockNum == descriptorLength-1))) {
-		io.writeBlock(d.data[blockNumber + 1], data);
+	if (blockNum == 0 || blockNum <=blockPos) return false;
+	if (blockPos < (descriptorLength - 2) || ((blockPos == (descriptorLength - 2)) && (blockNum == (descriptorLength-1)))) {
+		io.writeBlock(d.data[blockPos + 1], data);
 	}
 	else {
-		while ((blockNumber > (descriptorLength - 1))|| (blockNumber ==(descriptorLength-1))&& (blockNum> (descriptorLength - 1))) {
+		while ((blockPos > (descriptorLength - 2))|| (blockPos ==(descriptorLength-2))&& (blockNum> (descriptorLength - 1))) {
 			d = meta.getDescriptor(d.data[descriptorLength - 1]);
-			blockNumber -= (descriptorLength - 1);
+			blockPos -= (descriptorLength - 1);
 			blockNum -= (descriptorLength - 1);
 		}
-		io.writeBlock(d.data[blockNumber], data);
+		io.writeBlock(d.data[blockPos+1], data);
 	}
 	return true;
 }
 
 template<int k, int descriptorLength>
-bool FileSystem<k, descriptorLength>::readBlock(int fileDescrNum, int blockNumber, std::vector<char>& data) {
+bool FileSystem<k, descriptorLength>::readBlock(int fileDescrNum, int blockPos, std::vector<char>& data) {
 	FileDescriptor<descriptorLength> d = meta.getDescriptor(fileDescrNum);
 	int len = d.data[0];
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
-	if (blockNum == 0 || blockNum <= blockNumber) return false;
-	if (blockNumber < (descriptorLength - 2) || ((blockNumber == (descriptorLength - 2)) && (blockNum ==(descriptorLength-1)))) {
-		io.readBlock(d.data[blockNumber+1], data);
+	if (blockNum == 0 || blockNum <= blockPos) return false;
+	if (blockPos < (descriptorLength - 2) || ((blockPos == (descriptorLength - 2)) && (blockNum ==(descriptorLength-1)))) {
+		io.readBlock(d.data[blockPos+1], data);
 	}
 	else {
-		while ((blockNumber > (descriptorLength - 1)) || (blockNumber == (descriptorLength - 1)) && (blockNum> (descriptorLength - 1))) {
+		while ((blockPos > (descriptorLength - 2)) || (blockPos == (descriptorLength - 2)) && (blockNum> (descriptorLength - 1))) {
 			d = meta.getDescriptor(d.data[descriptorLength - 1]);
-			blockNumber -= (descriptorLength - 1);
+			blockPos -= (descriptorLength - 1);
 			blockNum -= (descriptorLength - 1);
 		}
-		io.readBlock(d.data[blockNumber], data);
+		io.readBlock(d.data[blockPos+1], data);
 	}
 	return true;
 }
@@ -229,7 +294,7 @@ bool FileSystem<k, descriptorLength>::addBlock(int fileDescrNum, std::vector<cha
 		meta.setDescriptor(currDescrNum, d);
 	}
 	else {
-		while (blockNum  >(descriptorLength - 2)) {
+		while (blockNum  >=(descriptorLength - 1)) {
 			currDescrNum = d.data[descriptorLength - 1];
 			d = meta.getDescriptor(currDescrNum);
 			blockNum -= (descriptorLength - 1);
@@ -242,7 +307,7 @@ bool FileSystem<k, descriptorLength>::addBlock(int fileDescrNum, std::vector<cha
 
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::removeLastBlock(int fileDescrNum) {
- 	FileDescriptor<descriptorLngth> d = meta.getDescriptor(fileDescrNum);
+ 	FileDescriptor<descriptorLength> d = meta.getDescriptor(fileDescrNum);
 	int len = d.data[0];
 	if (len == 0) return false;
 	int blockNum = (len + (io.getBlockLength()-1)) / io.getBlockLength();
@@ -256,7 +321,7 @@ bool FileSystem<k, descriptorLength>::removeLastBlock(int fileDescrNum) {
 			d = meta.getDescriptor(currDescrNum);
 			blockNum -= (descriptorLength - 1);
 		}
-		FileDescriptor<descriptorLngth> d1 = meta.getDescriptor(d.data[(descriptorLength - 1)]);
+		FileDescriptor<descriptorLength> d1 = meta.getDescriptor(d.data[(descriptorLength - 1)]);
 		int dataToTransfer = d1.data[0];
 		meta.freeBlock(d1.data[1]);
 		meta.freeDescriptor(d.data[descriptorLength - 1]);
