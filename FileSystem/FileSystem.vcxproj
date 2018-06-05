@@ -117,7 +117,6 @@
     <ClInclude Include="filesystem\FileDescriptor.hpp" />
     <ClInclude Include="filesystem\Metadata.hpp" />
     <ClInclude Include="filesystem\OFT.hpp" />
-    <ClInclude Include="includes.hpp" />
     <ClInclude Include="disk\LDisk.hpp" />
     <ClInclude Include="disk\Sector.hpp" />
     <ClInclude Include="disk\Track.hpp" />

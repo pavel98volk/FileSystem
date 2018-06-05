@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+
 #include "iosystem\IOSystem.hpp"
 #include "Metadata.hpp"
 #include "OFT.hpp"
@@ -32,7 +34,8 @@ class FileSystem {
 //data
 	 IOSystem &io;
 	 Metadata<k, descriptorLength> meta;
-	std::vector<char> buff;
+	 std::vector<char> buff;
+	 OFT oft;
 
 public:
 	std::string metadataToPrettyString();
@@ -43,6 +46,15 @@ public:
 	bool createFile(std::string name);
 	//destroys the file. frees allocated memory.
 	bool destroyFile(std::string name);
+
+	int openFile(std::string name);
+
+	bool closeFile(int fileDescriptorIndex);
+
+	int getOFTEntry(int fileDescriptorIndex);
+
+	int getFreeOFTEntry();
+
 protected:
 	//rewrites only already allocated blocks. blockNumber is the number of block in a file.
 	bool rewriteBlock(int fileDescrNum, int blockNumber, std::vector<char>& data);
@@ -94,6 +106,7 @@ std::string FileSystem<k, descriptorLength>::metadataToPrettyString()
 template <int k, int descriptorLength>
 FileSystem<k, descriptorLength>::FileSystem(IOSystem &io): io(io),meta(Metadata<k,descriptorLength>(io)){
 		buff.resize(io.getBlockLength());
+		oft = OFT();
 }
 template<int k, int descriptorLength>
 inline void FileSystem<k, descriptorLength>::clear(){
@@ -204,6 +217,85 @@ bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 	}
 	meta.freeDescriptor(descrPos);
 	return true;
+}
+
+template<int k, int descriptorLength>
+inline int FileSystem<k, descriptorLength>::openFile(std::string name)
+{
+	int descriptor = getDescriptorByFileName(name);
+	if (descriptor == 0)
+	{
+		return -1;
+	}
+
+	int oftEntry = getOFTEntry(descriptor);
+	if (oftEntry != -1)
+	{
+		std::cout << "File has been already opened\n";
+		return oftEntry;
+	}
+
+	oftEntry = getFreeOFTEntry();
+	if (oftEntry == -1)
+	{
+		return -1;
+	}
+
+	oft.entries[oftEntry] = OFTEntry();
+	oft.entries[oftEntry].currentPosition = 0;
+	oft.entries[oftEntry].fileDescriptorIndex = descriptor;
+
+	if (meta.getDescriptor(descriptor).data[0] != 0)
+	{
+		readBlock(descriptor, 0, oft.entries[oftEntry].RWBuffer);
+		oft.entries[oftEntry].curFileBlock = 0;
+	}
+
+	return oftEntry;
+}
+
+template<int k, int descriptorLength>
+inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
+{
+	OFTEntry entry = oft.entries[oftEntryIndex];
+
+	int len = meta.getDescriptor(entry.fileDescriptorIndex).data[0];
+	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+
+	if (blockNum == entry.curFileBlock)
+	{
+		addBlock(entry.fileDescriptorIndex, entry.RWBuffer);
+	}
+	else
+	{
+		rewriteBlock(entry.fileDescriptorIndex, entry.curFileBlock, entry.RWBuffer);
+	}
+}
+
+template<int k, int descriptorLength>
+inline int FileSystem<k, descriptorLength>::getOFTEntry(int fileDescriptorIndex)
+{
+	for (int i = 0; i < oft.entries.size(); i++)
+	{
+		if (oft.entries[i].fileDescriptorIndex == fileDescriptorIndex)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+template<int k, int descriptorLength>
+inline int FileSystem<k, descriptorLength>::getFreeOFTEntry()
+{
+	for (int i = 0; i < oft.entries.size(); i++)
+	{
+		if (oft.entries[i].empty)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 template<int k, int descriptorLength>
