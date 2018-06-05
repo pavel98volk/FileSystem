@@ -7,10 +7,10 @@
 
 class FileSystemTests: private FileSystem<4,4> {
 public:
-	static void openCloseTest() {
+	static void createDestroyTest() {
 		LDisk disk;
 		IOSystem io(disk);
-		FileSystem<4, 4> fs(io);
+		FileSystem<16, 4> fs(io);
 		fs.clear();
 
 		fs.createFile("aah");
