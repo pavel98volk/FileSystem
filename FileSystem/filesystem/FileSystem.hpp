@@ -295,7 +295,7 @@ inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 		rewriteBlock(entry.fileDescriptorIndex, entry.currentPosition, entry.RWBuffer);
 	}
 
-	entry.empty = true;
+	entry.clear();
 
 	return 1;
 }
