@@ -69,6 +69,20 @@ public:
 		std::cout << fs.metadataToPrettyString();
 		system("pause");
 	}
+	static void OFTTest() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<16, 4> fs(io);
+		fs.clear();
+		fs.createFile("aah");
+		fs.createFile("aat");
+		fs.createFile("aay");
+		fs.createFile("aai");
+		
+		int index = fs.openFile("aay");
+		
+		fs.closeFile(index);
+	}
 	static void directoryTest() {
 		LDisk disk;
 		IOSystem io(disk);

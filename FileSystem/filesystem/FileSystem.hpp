@@ -6,8 +6,7 @@
 #include "OFT.hpp"
 
 /*information
-  1)only the 3 first letters of file name are saved. Files with shorter filenames now can crash the app.
-  
+  1)only the 4 first letters of file name are saved. Files with shorter filenames can sometimes be complemented with randomm symbols.
 
  */
  /*
@@ -17,10 +16,13 @@
 	simple console visualization   // metadataToPrettyString();
 	file creation  
 	ability to change/destroy_last/push_back blocks of a particular file.
+	-destroying files;
+	-working with files (open, close);
  */
 /*todo
-	-destroying files;
-	-working with files (open, close, etc...);
+	-read
+	-write
+	
 	-handle or get rid of exceptions (from Metadata class)
 
 */
@@ -50,10 +52,16 @@ public:
 	int openFile(std::string name);
 
 	bool closeFile(int fileDescriptorIndex);
-
+	
 	int getOFTEntry(int fileDescriptorIndex);
 
 	int getFreeOFTEntry();
+
+	bool lseek(int index, int pos);
+	
+	bool read(int index, char*mem_area, int count);
+
+	bool write(int index, char*mem_area, int count);
 
 protected:
 	//rewrites only already allocated blocks. blockNumber is the number of block in a file.
@@ -324,6 +332,38 @@ inline int FileSystem<k, descriptorLength>::getFreeOFTEntry()
 		}
 	}
 	return -1;
+}
+
+template<int k, int descriptorLength>
+bool FileSystem<k, descriptorLength>::lseek(int index, int pos)
+{
+	//1)saving changes
+	int len = meta.getDescriptor(oft.entries[index].fileDescriptorIndex).data[0];
+	if (pos > len) return false;
+	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+	int curBlock = (len) / io.getBlockLength();
+	if (curBlock < blockNum)  rewriteBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].curFileBlock, oft.entries[index].RWBuffer);
+	else if (curBlock == blockNum) addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
+	else return false; // or throw exception
+
+	//2) opening the new one
+	readBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition% io.getBlockLength(), oft.entries[index].RWBuffer);
+	oft.entries[index].currentPosition = pos;
+	return true;
+}
+
+template<int k, int descriptorLength>
+bool FileSystem<k, descriptorLength>::read(int index, char * mem_area, int count)
+{
+	//todo
+	return false;
+}
+
+template<int k, int descriptorLength>
+bool FileSystem<k, descriptorLength>::write(int index, char * mem_area, int count)
+{
+	//todo
+	return false;
 }
 
 template<int k, int descriptorLength>
