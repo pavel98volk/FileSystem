@@ -110,7 +110,6 @@ void Metadata<k, descriptorLength>::clear(){
 	for (int j = 1; j < descrArrLen; j++) {
 		setDescriptorData(j, 0, 1);
 		setDescriptorData(j, 1, 0);
-		setDescriptorData(j, 2, 0);
 	}
 
 }

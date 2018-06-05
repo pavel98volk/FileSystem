@@ -27,7 +27,7 @@ private:
 	{
 		//Firstly searching cylinder number
 		int cylinderNumber = -1; //undefined firstly
-		for (int i = 1; i < LDisk::cylindersAmount; i++)
+		for (int i = 1; i <= LDisk::cylindersAmount; i++)
 		{
 			if (blockNumber < i * blocksAmountInCylinder)
 			{
@@ -44,7 +44,7 @@ private:
 		int blockNumberInCylinder = blockNumber % blocksAmountInCylinder;
 		//Searching track number
 		int trackNumber = -1;
-		for (int i = 1; i < Cylinder::tracksAmount; i++)
+		for (int i = 1; i <= Cylinder::tracksAmount; i++)
 		{
 			if (blockNumberInCylinder < i * blocksAmountInTrack)
 			{
@@ -63,7 +63,7 @@ private:
 		//Searching actually block(sector) number
 		int sectorNumber = -1;
 
-		for (int i = 1; i < Track::sectorsAmount; i++)
+		for (int i = 1; i <= Track::sectorsAmount; i++)
 		{
 			if (blockNumberInTrack < i * blocksAmountInSector)
 			{
@@ -90,6 +90,11 @@ public:
 
 	void readBlock(int const& blockNumber, std::vector<char> & destination)
 	{
+		//debug
+		if (blockNumber >= 7) {
+			volatile int k = 1;
+		}
+
 		if (blockNumber < 0 || blockNumber >= blocksAmount)
 		{
 			std::runtime_error("Block number " + std::to_string(blockNumber) + " should be >= 0 and < " + std::to_string(blocksAmount));

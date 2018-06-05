@@ -74,6 +74,7 @@ std::string FileSystem<k, descriptorLength>::metadataToPrettyString()
 		readBlock(0,i,buff);
 		for (int j = 0; (j < io.getBlockLength() / 4) && (i*io.getBlockLength() + j*4 < len); j++) {
 			if (j % 2) {
+				int k = getInt(j, buff);
 				s += std::to_string(getInt(j, buff)) + " |";
 			} else {
 				for (int t = 0; t < 4; t++) {
@@ -119,7 +120,10 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 		len++;
 		i++;
 	}
-	if(len>0)rewriteBlock(0, blockNum - 1, buff);
+	if (descriptorNum == 25) {
+		volatile int c = 0;
+	}
+	if(blockNum>0)rewriteBlock(0, blockNum - 1, buff);
 	//if(file is bigger now) make it bigger.
 	if ((dir.data[0] + 8 +io.getBlockLength()-1) / io.getBlockLength() > (dir.data[0]+io.getBlockLength()-1) / io.getBlockLength()) {
 		for (int j = 0; i < 8; i++, j++) {
@@ -127,7 +131,7 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 				buff[j] = name[i];
 			}
 			else {
-				buff[j] = (descriptorNum) >> ((24 - 8 * (i - 4)) & 0xFF);
+				buff[j] = ((descriptorNum) >> ((24 - 8 * (i - 4)) & 0xFF));
 			}
 		}
 		addBlock(0, buff);
@@ -182,8 +186,8 @@ bool FileSystem<k, descriptorLength>::readBlock(int fileDescrNum, int blockNumbe
 	int len = d.data[0];
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
 	if (blockNum == 0 || blockNum <= blockNumber) return false;
-	if (blockNumber <= (descriptorLength - 1)) {
-		io.readBlock(d.data[blockNumber + 1], data);
+	if (blockNumber < (descriptorLength - 2) || ((blockNumber == (descriptorLength - 2)) && (blockNum ==(descriptorLength-1)))) {
+		io.readBlock(d.data[blockNumber+1], data);
 	}
 	else {
 		while ((blockNumber > (descriptorLength - 1)) || (blockNumber == (descriptorLength - 1)) && (blockNum> (descriptorLength - 1))) {
