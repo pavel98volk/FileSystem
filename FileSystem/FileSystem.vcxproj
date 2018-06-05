@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -115,11 +115,13 @@
     <ClInclude Include="disk\Cylinder.hpp" />
     <ClInclude Include="filesystem\FileSystem.hpp" />
     <ClInclude Include="filesystem\FileDescriptor.hpp" />
-    <ClInclude Include="includes.hpp" />
+    <ClInclude Include="filesystem\Metadata.hpp" />
+    <ClInclude Include="filesystem\OFT.hpp" />
     <ClInclude Include="disk\LDisk.hpp" />
     <ClInclude Include="disk\Sector.hpp" />
     <ClInclude Include="disk\Track.hpp" />
     <ClInclude Include="iosystem\IOSystem.hpp" />
+    <ClInclude Include="Shell.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
