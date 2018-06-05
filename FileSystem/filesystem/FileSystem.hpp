@@ -280,7 +280,7 @@ inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 	if (meta.getDescriptor(descriptor).data[0] != 0)
 	{
 		readBlock(descriptor, 0, oft.entries[oftEntry].RWBuffer);
-		oft.entries[oftEntry].curFileBlock = 0;
+		oft.entries[oftEntry].currentPosition = 0;
 	}
 
 	return oftEntry;
