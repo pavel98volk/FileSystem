@@ -7,7 +7,7 @@
 
 class FileSystemTests: private FileSystem<4,4> {
 public:
-	static void openCloseTest() {
+	static void createDestroyTest() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<4, 4> fs(io);

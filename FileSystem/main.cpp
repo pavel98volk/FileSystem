@@ -6,6 +6,6 @@
 //bugs: when there is need to extend a directory the length gets -128 after 128
 void main() {
 	FileSystemTests::directoryTest();
-	//FileSystemTests::openCloseTest();
+	//FileSystemTests::createDestroyTest();
 	return;
 }

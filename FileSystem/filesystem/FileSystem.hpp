@@ -109,6 +109,7 @@ FileSystem<k, descriptorLength>::FileSystem(IOSystem &io): io(io),meta(Metadata<
 		buff.resize(io.getBlockLength());
 		oft = OFT();
 }
+
 template<int k, int descriptorLength>
 inline void FileSystem<k, descriptorLength>::clear(){
 	meta.clear();
@@ -153,8 +154,6 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 	meta.setDescriptorData(0, 0, dir.data[0] + 8);
 	return true;
 }
-
-
 
 //bug: works only when block_size %8 =0;
 template<int k, int descriptorLength>
@@ -222,7 +221,6 @@ bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 }
 
 template<int k, int descriptorLength>
-
 std::vector < std::pair<std::string, int>> FileSystem<k, descriptorLength>::directory() {
 	FileDescriptor<descriptorLength> d = meta.getDescriptor(0);
 	int len = d.data[0];
@@ -244,6 +242,7 @@ std::vector < std::pair<std::string, int>> FileSystem<k, descriptorLength>::dire
 	}
 	return res;
 }
+
 template<int k, int descriptorLength>
 inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 {
@@ -341,7 +340,7 @@ inline int FileSystem<k, descriptorLength>::getDescriptorByFileName(std::string 
 	}
 	return 0;
 }
-//blockNumber from 0
+//blockPos from 0
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::rewriteBlock(int fileDescrNum, int blockPos, std::vector<char>& data) {
 	FileDescriptor<descriptorLength> d = meta.getDescriptor(fileDescrNum);
