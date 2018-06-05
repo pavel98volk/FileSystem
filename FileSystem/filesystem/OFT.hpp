@@ -7,18 +7,25 @@ struct OFTEntry
 	int currentPosition;
 	int fileDescriptorIndex;
 
-	int curFileBlock;
-
-	bool empty = true;
+	bool empty;
 
 	const int blockLength = 64; // Should be the same as IOSystem one
 
 	OFTEntry()
 	{
+		/*RWBuffer.resize(blockLength);
+		currentPosition = -1;
+		fileDescriptorIndex = -1;*/
+		clear();
+	}
+
+	void clear() 
+	{
+		RWBuffer.clear();
 		RWBuffer.resize(blockLength);
 		currentPosition = -1;
 		fileDescriptorIndex = -1;
-		curFileBlock = -1;
+		empty = true;
 	}
 };
 
