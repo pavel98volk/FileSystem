@@ -281,7 +281,7 @@ inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 template<int k, int descriptorLength>
 inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 {
-	OFTEntry entry = oft.entries[oftEntryIndex];
+	OFTEntry &entry = oft.entries[oftEntryIndex];
 
 	int len = meta.getDescriptor(entry.fileDescriptorIndex).data[0];
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
@@ -294,6 +294,10 @@ inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 	{
 		rewriteBlock(entry.fileDescriptorIndex, entry.curFileBlock, entry.RWBuffer);
 	}
+
+	entry.empty = true;
+
+	return 1;
 }
 
 template<int k, int descriptorLength>
