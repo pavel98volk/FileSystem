@@ -10,9 +10,7 @@
   
 
  */
- /*bugs to solve
- 1)after stress testing by adding a lot of files (much more than 10) throws vector exception. May be connected with int/char conversations.
-
+ /*
 
  */
  /*done
@@ -46,6 +44,8 @@ public:
 	bool createFile(std::string name);
 	//destroys the file. frees allocated memory.
 	bool destroyFile(std::string name);
+	//
+	std::vector < std::pair<std::string, int>> directory();
 
 	int openFile(std::string name);
 
@@ -103,6 +103,7 @@ std::string FileSystem<k, descriptorLength>::metadataToPrettyString()
 	return meta.toPrettyString() + s;
 }
 
+
 template <int k, int descriptorLength>
 FileSystem<k, descriptorLength>::FileSystem(IOSystem &io): io(io),meta(Metadata<k,descriptorLength>(io)){
 		buff.resize(io.getBlockLength());
@@ -154,7 +155,7 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 
 
 
-//кратна 8 bit
+//bug: works only when block_size %8 =0;
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 	//1) get the descriptor
@@ -220,6 +221,29 @@ bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 }
 
 template<int k, int descriptorLength>
+
+std::vector < std::pair<std::string, int>> FileSystem<k, descriptorLength>::directory() {
+	FileDescriptor<descriptorLength> d = meta.getDescriptor(0);
+	int len = d.data[0];
+	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+
+	std::vector < std::pair<std::string, int>> res;
+	//this block might not always work with different blockLength
+	for (int i = 0; i < blockNum; i++) {
+		readBlock(0, i, buff);
+		for (int j = 0; (j < io.getBlockLength() / 8) && (i*io.getBlockLength() + j * 8 < len); j++) {
+				int len = meta.getDescriptor(getInt(j * 2 + 1, buff)).data[0];
+				std::string name = "";
+				for (int t = 0; t < 4; t++) {
+					name += buff[j * 8 + t];
+				}
+				res.push_back(std::pair<std::string, int>(name, len));
+		}
+		int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+	}
+	return res;
+}
+
 inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 {
 	int descriptor = getDescriptorByFileName(name);
