@@ -286,13 +286,13 @@ inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 	int len = meta.getDescriptor(entry.fileDescriptorIndex).data[0];
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
 
-	if (blockNum == entry.curFileBlock)
+	if (blockNum == entry.currentPosition)
 	{
 		addBlock(entry.fileDescriptorIndex, entry.RWBuffer);
 	}
 	else
 	{
-		rewriteBlock(entry.fileDescriptorIndex, entry.curFileBlock, entry.RWBuffer);
+		rewriteBlock(entry.fileDescriptorIndex, entry.currentPosition, entry.RWBuffer);
 	}
 
 	entry.empty = true;
