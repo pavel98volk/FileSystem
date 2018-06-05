@@ -63,6 +63,9 @@ public:
 
 	bool write(int index, char*mem_area, int count);
 
+	std::string toString();
+	void fromString(std::string input);
+
 protected:
 	//rewrites only already allocated blocks. blockNumber is the number of block in a file.
 	bool rewriteBlock(int fileDescrNum, int blockNumber, std::vector<char>& data);
@@ -342,7 +345,7 @@ bool FileSystem<k, descriptorLength>::lseek(int index, int pos)
 	if (pos > len) return false;
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
 	int curBlock = (len) / io.getBlockLength();
-	if (curBlock < blockNum)  rewriteBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].curFileBlock, oft.entries[index].RWBuffer);
+	if (curBlock < blockNum)  rewriteBlock(oft.entries[index].fileDescriptorIndex, curBlock, oft.entries[index].RWBuffer);
 	else if (curBlock == blockNum) addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
 	else return false; // or throw exception
 
@@ -355,15 +358,63 @@ bool FileSystem<k, descriptorLength>::lseek(int index, int pos)
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::read(int index, char * mem_area, int count)
 {
-	//todo
-	return false;
+	int len = meta.getDescriptor(oft.entries[index].fileDescriptorIndex).data[0]; //len = -max_int
+	if ((oft.entries[index].currentPosition +count) > len) return false;
+	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+	int i = 0;
+	while (i < count) {
+		mem_area[i++] = oft.entries[index].RWBuffer[(oft.entries[index].currentPosition++) % io.getBlockLength()];
+		while (i < count && (oft.entries[index].currentPosition%io.getBlockLength() != 0)) {
+			mem_area[i++] = oft.entries[index].RWBuffer[(oft.entries[index].currentPosition++) % io.getBlockLength()];
+		}
+		if (i < count) {
+			if (oft.entries[index].currentPosition%io.getBlockLength() >= len%io.getBlockLength()) {
+				addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
+				meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition + 1);//?
+			}
+			else
+				rewriteBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength() - 1, oft.entries[index].RWBuffer);
+			readBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength(), oft.entries[index].RWBuffer);
+		}
+	}
+	return true;
 }
 
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::write(int index, char * mem_area, int count)
 {
-	//todo
-	return false;
+	int len = meta.getDescriptor(oft.entries[index].fileDescriptorIndex).data[0];
+	
+	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
+	int i = 0;
+	while (i < count) {
+		oft.entries[index].RWBuffer[(oft.entries[index].currentPosition++) % io.getBlockLength()] = mem_area[i++];
+		while (i < count && (oft.entries[index].currentPosition%io.getBlockLength() != 0)) {
+			oft.entries[index].RWBuffer[(oft.entries[index].currentPosition++) % io.getBlockLength()] = mem_area[i++];
+		}
+		if (i < count) {
+			if (oft.entries[index].currentPosition%io.getBlockLength() >= len%io.getBlockLength()) {
+				addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
+				meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition+1);//?
+			} else 
+				rewriteBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength()-1, oft.entries[index].RWBuffer);
+			readBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength(), oft.entries[index].RWBuffer);
+		}
+
+	}
+	meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition + 1);//?
+	return true;
+}
+
+template<int k, int descriptorLength>
+inline std::string FileSystem<k, descriptorLength>::toString()
+{
+	return std::string();
+}
+
+template<int k, int descriptorLength>
+inline void FileSystem<k, descriptorLength>::fromString(std::string input)
+{
 }
 
 template<int k, int descriptorLength>

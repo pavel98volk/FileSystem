@@ -80,8 +80,14 @@ public:
 		fs.createFile("aai");
 		
 		int index = fs.openFile("aay");
-		
-		fs.closeFile(index);
+		char* data = new char[100];
+		std::cout<<fs.write(index, data, 60) << '\n';
+		std::cout<<fs.lseek(index, 0) << '\n';
+		std::cout<<fs.read(index, data, 50) << '\n';
+		std::cout<<fs.closeFile(index) << '\n';
+
+		system("pause");
+
 	}
 	static void directoryTest() {
 		LDisk disk;
