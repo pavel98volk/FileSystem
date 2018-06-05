@@ -6,16 +6,10 @@
 void main() {
 	LDisk disk;
 	IOSystem io(disk);
-	FileSystem<16, 4> fs(io);
+	FileSystem<4, 4> fs(io);
 	fs.clear();
-	fs.createFile("aaa");
-	fs.createFile("aab");    
-	fs.createFile("aac");
-	fs.createFile("aad");
-	fs.createFile("aae");
-	fs.createFile("aaf");
-	fs.createFile("aag");
-	fs.createFile("aah");
+	
+	/*fs.createFile("aah");
 	fs.createFile("aat");
 	fs.createFile("aay");
 	fs.createFile("aai");
@@ -68,7 +62,7 @@ void main() {
 	fs.createFile("eal");
 	fs.createFile("eaq");
 	fs.createFile("eat");
-
+	*/
 	
 	std::cout << fs.metadataToPrettyString();
 	system("pause");
