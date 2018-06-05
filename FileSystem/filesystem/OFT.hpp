@@ -28,6 +28,16 @@ struct OFT
 
 	OFT()
 	{
-		entries.resize(4);
+		clear();
+	}
+
+	void clear()
+	{
+		entries.clear();
+		entries.reserve(4);
+		for (int i = 0; i < 4; i++)
+		{
+			entries.emplace_back(OFTEntry());
+		}
 	}
 };
