@@ -265,7 +265,7 @@ inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 		return -1;
 	}
 
-	oft.entries[oftEntry] = OFTEntry();
+	oft.entries[oftEntry].clear();
 	oft.entries[oftEntry].currentPosition = 0;
 	oft.entries[oftEntry].fileDescriptorIndex = descriptor;
 
