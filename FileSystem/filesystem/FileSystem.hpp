@@ -243,7 +243,7 @@ std::vector < std::pair<std::string, int>> FileSystem<k, descriptorLength>::dire
 	}
 	return res;
 }
-
+template<int k, int descriptorLength>
 inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 {
 	int descriptor = getDescriptorByFileName(name);
