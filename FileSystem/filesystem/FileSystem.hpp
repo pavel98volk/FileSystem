@@ -112,6 +112,7 @@ FileSystem<k, descriptorLength>::FileSystem(IOSystem &io): io(io),meta(Metadata<
 template<int k, int descriptorLength>
 inline void FileSystem<k, descriptorLength>::clear(){
 	meta.clear();
+	oft.clear();
 }
 
 template<int k, int descriptorLength>
