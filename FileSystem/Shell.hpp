@@ -5,7 +5,7 @@ void shell()
 {
 	LDisk disk;
 	IOSystem io(disk);
-	FileSystem<4, 4> *fs;
+	FileSystem<4, 4> *fs = new FileSystem<4, 4>(io);
 	std::string command;
 	while (true)
 	{
@@ -22,22 +22,30 @@ void shell()
 			std::string name = command.substr(3, command.size() - 1);
 			bool check = fs->destroyFile(name);
 			if (check)
-				std::cout << "file " << name << "deleted\n";
+				std::cout << "file " << name << " deleted\n";
 			else std::cout << "error occured\n";
 		}
 		else if (temp == "op"){
 			std::string name = command.substr(3, command.size() - 1);
 			int check = fs->openFile(name);
 			if (check != -1)
-				std::cout << "file " << name << "opened, index : " << check << std::endl;
+				std::cout << "file " << name << " opened, index : " << check << std::endl;
 			else std::cout << "can't open file\n";
 		}
 		else if (temp == "cl"){
-			int index = std::stoi(command.substr(3, command.size() - 1));
-			std::string check = fs->closeFile(index);
-			if (check != "error")
-				std::cout << "File " << check << " closed\n";
-			else std::cout << "cann't close this file\n";
+			int index = -1;
+			try {
+				index = std::stoi(command.substr(3, command.size() - 1));
+			}
+			catch (std::exception e) {
+				std::cout << "invalid OFT index\n";
+			}
+			if (index != -1) {
+				std::string check = fs->closeFile(index);
+				if (check != "error")
+					std::cout << "File " << check << " closed\n";
+				else std::cout << "can't close this file\n";
+			}
 		}
 		else if (temp == "rd"){
 			int i;
@@ -78,7 +86,7 @@ void shell()
 			}
 			count = stoi(command.substr(++i, command.size() - 1));
 			if (fs->write(index, mem_area, count))
-				std::cout << count << "bytes written\n";
+				std::cout << count << " bytes written\n";
 			else std::cout << "error occured\n";
 		}
 		else if (temp == "sk"){
@@ -103,17 +111,43 @@ void shell()
 			}
 		}
 		else if (temp == "in"){
-			std::string name = command.substr(3, command.size() - 1);
+			//std::string name = command.substr(3, command.size() - 1);
 			fs = new FileSystem<4, 4>(io);
+			fs->clear();
+			std::cout<<"created\n";
 		}
 		else if (temp == "sv"){
-			std::string name = command.substr(3, command.size() - 1);
+			fs->sync();
+			std::cout << "You successfully executed \"sv\" command!\n";
 		}
 		else if (temp == "ex"){
 			temp += command.at(2);
 			if (temp == "ext") break;
 		}
-		else continue;
+		else if (temp == "qq") {
+			std::cout << "----------------------------------\n";
+			std::cout<<fs->metadataToPrettyString();
+			std::cout << "----------------------------------\n";
+		}
+		else if (temp == "fs") {
+			std::string temp="";
+			for (int i = 3; i < command.size(); i++) {
+				if (command.at(i) == ' ') break;
+				temp+= command.at(i);
+			}
+			fs->toFile(temp);
+		}
+		else if (temp == "fr") {
+			std::string temp = "";
+			for (int i = 3; i < command.size(); i++) {
+				if (command.at(i) == ' ') break;
+				temp += command.at(i);
+			}
+			fs->fromFile(temp);
+		}
+		else {
+			std::cout << "|||| command was not found !\n";
+		}
 
 	}
 }
