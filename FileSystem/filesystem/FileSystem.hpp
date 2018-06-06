@@ -4,6 +4,7 @@
 #include "iosystem\IOSystem.hpp"
 #include "Metadata.hpp"
 #include "OFT.hpp"
+#include <fstream>
 
 /*information
   1)only the 4 first letters of file name are saved. Files with shorter filenames can sometimes be complemented with randomm symbols.
@@ -63,8 +64,8 @@ public:
 
 	bool write(int index, char*mem_area, int count);
 
-	std::string toString();
-	void fromString(std::string input);
+	void toFile(std::string name);
+	void fromFile(std::string name);
 
 protected:
 	//rewrites only already allocated blocks. blockNumber is the number of block in a file.
@@ -422,14 +423,33 @@ bool FileSystem<k, descriptorLength>::write(int index, char * mem_area, int coun
 }
 
 template<int k, int descriptorLength>
-inline std::string FileSystem<k, descriptorLength>::toString()
+inline void FileSystem<k, descriptorLength>::toFile(std::string name)
 {
-	return std::string();
+	std::ofstream myfile;
+	myfile.open(name);
+	std::vector<char> buff; buff.resize(io.getBlockLength());
+	for (int i = 0; i < io.getBlockCount(); i++) {
+		io.readBlock(i, buff);
+		for (int j = 0; j < io.getBlockLength(); j++) {
+			myfile << buff[j];
+		}
+	}
+	myfile.close();
 }
 
 template<int k, int descriptorLength>
-inline void FileSystem<k, descriptorLength>::fromString(std::string input)
+inline void FileSystem<k, descriptorLength>::fromFile(std::string name)
 {
+	std::ifstream myfile;
+	myfile.open(name);
+	std::vector<char> buff; buff.resize(io.getBlockLength());
+	for (int i = 0; i < io.getBlockCount(); i++) {
+		for (int j = 0; j < io.getBlockLength(); j++) {
+			myfile >> buff[j];
+		}
+		io.writeBlock(i,buff);
+	}
+	myfile.close();
 }
 
 template<int k, int descriptorLength>
