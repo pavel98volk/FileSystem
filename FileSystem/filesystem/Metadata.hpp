@@ -27,9 +27,7 @@ public:
 	void loadFromString(std::string s);
 	int findFreeBlock();
 	int findFreeDescriptor();
-	void freeDescriptor();
 	void freeBlock(int blockNum);
-	void newFileToDir(std::string name);
 	inline void freeDescriptor(int pos);
 	//additional
 private:
