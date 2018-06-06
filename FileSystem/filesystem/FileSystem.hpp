@@ -63,6 +63,7 @@ public:
 	bool read(int index, char*mem_area, int count);
 
 	bool write(int index, char*mem_area, int count);
+	bool sync();
 
 	void toFile(std::string name);
 	void fromFile(std::string name);
@@ -288,7 +289,7 @@ inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 	oft.entries[oftEntry].currentPosition = 0;
 	oft.entries[oftEntry].fileDescriptorIndex = descriptor;
 	oft.entries[oftEntry].setFileName(name);
-
+	oft.entries[oftEntry].empty = false;
 	if (meta.getDescriptor(descriptor).data[0] != 0)
 	{
 		readBlock(descriptor, 0, oft.entries[oftEntry].RWBuffer);
@@ -303,6 +304,7 @@ inline std::string FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 {
 	if (oftEntryIndex >= 4) return "error";
 	OFTEntry &entry = oft.entries[oftEntryIndex];
+	if (entry.empty) return "error";
 	std::string temp = entry.fileName;
 
 	int len = meta.getDescriptor(entry.fileDescriptorIndex).data[0];
@@ -342,6 +344,7 @@ inline int FileSystem<k, descriptorLength>::getFreeOFTEntry()
 	{
 		if (oft.entries[i].empty)
 		{
+			oft.entries[i].empty = false;
 			return i;
 		}
 	}
@@ -351,15 +354,18 @@ inline int FileSystem<k, descriptorLength>::getFreeOFTEntry()
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::lseek(int index, int pos)
 {
+	//proofing
+	if (index > 4)return false;
+	if (oft.entries[index].empty)return false;
 	//1)saving changes
 	int len = meta.getDescriptor(oft.entries[index].fileDescriptorIndex).data[0];
-	if (pos > len) return false;
+	if (pos > len && (pos >oft.entries[index].currentPosition)) return false;
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
-	int curBlock = (len) / io.getBlockLength();
+	int curBlock = (oft.entries[index].currentPosition) / io.getBlockLength();
 	if (curBlock < blockNum) {
 		rewriteBlock(oft.entries[index].fileDescriptorIndex, curBlock, oft.entries[index].RWBuffer);
 	}
-	else if (curBlock == blockNum) {
+	else if ((curBlock == blockNum) && (oft.entries[index].currentPosition%io.getBlockLength())) {
 		addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
 		meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition);
 	}
@@ -372,8 +378,10 @@ bool FileSystem<k, descriptorLength>::lseek(int index, int pos)
 }
 
 template<int k, int descriptorLength>
-bool FileSystem<k, descriptorLength>::read(int index, char * mem_area, int count)
-{
+bool FileSystem<k, descriptorLength>::read(int index, char * mem_area, int count){
+	if (index > 4)return false;
+	if (oft.entries[index].empty)return false;
+
 	int len = meta.getDescriptor(oft.entries[index].fileDescriptorIndex).data[0]; //len = -max_int
 	if ((oft.entries[index].currentPosition +count) > len) return false;
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
@@ -399,6 +407,9 @@ bool FileSystem<k, descriptorLength>::read(int index, char * mem_area, int count
 template<int k, int descriptorLength>
 bool FileSystem<k, descriptorLength>::write(int index, char * mem_area, int count)
 {
+	if (index > 4)return false;
+	if (oft.entries[index].empty)return false;
+
 	int len = meta.getDescriptor(oft.entries[index].fileDescriptorIndex).data[0];
 	
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
@@ -419,6 +430,14 @@ bool FileSystem<k, descriptorLength>::write(int index, char * mem_area, int coun
 
 	}
 	//meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition );
+	return true;
+}
+
+template<int k, int descriptorLength>
+inline bool FileSystem<k, descriptorLength>::sync()
+{
+	for (int i = 0; i < 4; i++)
+		lseek(i, oft.entries[i].currentPosition);
 	return true;
 }
 
@@ -445,7 +464,9 @@ inline void FileSystem<k, descriptorLength>::fromFile(std::string name)
 	std::vector<char> buff; buff.resize(io.getBlockLength());
 	for (int i = 0; i < io.getBlockCount(); i++) {
 		for (int j = 0; j < io.getBlockLength(); j++) {
-			myfile >> buff[j];
+			int temp;
+			myfile >> temp;
+			buff[j] = temp - 128;
 		}
 		io.writeBlock(i,buff);
 	}
