@@ -13,11 +13,14 @@ public:
 		FileSystem<16, 4> fs(io);
 		fs.clear();
 
-		fs.createFile("aah");
-		fs.createFile("aat");
-		fs.createFile("aay");
-		fs.createFile("aai");
-		fs.createFile("aal");
+		fs.createFile("asga");
+		fs.createFile("aata");
+		fs.createFile("aaya");
+		fs.createFile("aaia");
+		//fs.destroyFile("aata");
+		fs.createFile("alka"); 
+		fs.createFile("asda");
+		/*fs.createFile("aal");
 		fs.createFile("aaq");
 		fs.createFile("baa");
 		fs.createFile("bab");
@@ -65,7 +68,7 @@ public:
 		fs.createFile("eai");
 		fs.createFile("eal");
 		fs.createFile("eaq");
-		fs.createFile("eat");
+		fs.createFile("eat");*/
 		std::cout << fs.metadataToPrettyString();
 		system("pause");
 	}
@@ -81,9 +84,19 @@ public:
 		
 		int index = fs.openFile("aay");
 		char* data = new char[100];
+		for (int i = 0; i < 100; i++) {
+			data[i] = 'a';
+		}
 		std::cout<<fs.write(index, data, 60) << '\n';
 		std::cout<<fs.lseek(index, 0) << '\n';
-		std::cout<<fs.read(index, data, 50) << '\n';
+		for (int i = 0; i < 100; i++) {
+			data[i] = 'b';
+		}
+		std::cout << fs.write(index, data, 20) << '\n';
+		std::cout << fs.lseek(index, 0) << '\n';
+		std::cout<<fs.read(index, data, 40) << '\n';
+		data[99] = '\0';
+		std::cout << data << '\n';
 		std::cout<<fs.closeFile(index) << '\n';
 
 		system("pause");

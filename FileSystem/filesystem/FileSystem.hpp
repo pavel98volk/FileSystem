@@ -140,7 +140,10 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 	len %= io.getBlockLength();
 	int i = 0;
 	while ((len%io.getBlockLength()!=0) && i<4) {
-		buff[len] = name[i];
+		if (name.length()>i)
+			buff[len] = name[i];
+		else
+			buff[len] = '\0';
 		len++;
 		i++;
 	}
@@ -154,7 +157,10 @@ bool FileSystem<k, descriptorLength>::createFile(std::string name){
 	if ((dir.data[0] + 8 +io.getBlockLength()-1) / io.getBlockLength() > (dir.data[0]+io.getBlockLength()-1) / io.getBlockLength()) {
 		for (int j = 0; i < 8; i++, j++) {
 			if (i < 4) {
-				buff[j] = name[i];
+				if (name.length()>i)
+					buff[j] = name[i];
+				else
+					buff[j]   ='\0';
 			}
 			else {
 				buff[j] = ((descriptorNum) >> ((24 - 8 * (i - 4)) & 0xFF));
@@ -217,7 +223,8 @@ bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 		}
 	}
 	if (descrPos == 0) return false;
-
+	//now that we found we can close this file if it is opened
+	// opened file exeption
 	if ((len - 3)% io.getBlockLength() < (len - 1) % io.getBlockLength())
 		removeLastBlock(0);
 	meta.setDescriptorData(0, 0, (d.data[0] - 8));
@@ -345,12 +352,17 @@ bool FileSystem<k, descriptorLength>::lseek(int index, int pos)
 	if (pos > len) return false;
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
 	int curBlock = (len) / io.getBlockLength();
-	if (curBlock < blockNum)  rewriteBlock(oft.entries[index].fileDescriptorIndex, curBlock, oft.entries[index].RWBuffer);
-	else if (curBlock == blockNum) addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
+	if (curBlock < blockNum) {
+		rewriteBlock(oft.entries[index].fileDescriptorIndex, curBlock, oft.entries[index].RWBuffer);
+	}
+	else if (curBlock == blockNum) {
+		addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
+		meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition);
+	}
 	else return false; // or throw exception
 
 	//2) opening the new one
-	readBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition% io.getBlockLength(), oft.entries[index].RWBuffer);
+	readBlock(oft.entries[index].fileDescriptorIndex, pos % io.getBlockLength(), oft.entries[index].RWBuffer);
 	oft.entries[index].currentPosition = pos;
 	return true;
 }
@@ -370,7 +382,7 @@ bool FileSystem<k, descriptorLength>::read(int index, char * mem_area, int count
 		if (i < count) {
 			if (oft.entries[index].currentPosition%io.getBlockLength() >= len%io.getBlockLength()) {
 				addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
-				meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition + 1);//?
+				meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition);
 			}
 			else
 				rewriteBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength() - 1, oft.entries[index].RWBuffer);
@@ -395,14 +407,14 @@ bool FileSystem<k, descriptorLength>::write(int index, char * mem_area, int coun
 		if (i < count) {
 			if (oft.entries[index].currentPosition%io.getBlockLength() >= len%io.getBlockLength()) {
 				addBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].RWBuffer);
-				meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition+1);//?
+				meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition);
 			} else 
 				rewriteBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength()-1, oft.entries[index].RWBuffer);
 			readBlock(oft.entries[index].fileDescriptorIndex, oft.entries[index].currentPosition % io.getBlockLength(), oft.entries[index].RWBuffer);
 		}
 
 	}
-	meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition + 1);//?
+	//meta.setDescriptorData(oft.entries[index].fileDescriptorIndex, 0, oft.entries[index].currentPosition );
 	return true;
 }
 
@@ -419,6 +431,7 @@ inline void FileSystem<k, descriptorLength>::fromString(std::string input)
 
 template<int k, int descriptorLength>
 inline int FileSystem<k, descriptorLength>::getDescriptorByFileName(std::string name){
+	if (name.length() == 0)return 0;
 	FileDescriptor<descriptorLength> d = meta.getDescriptor(0);
 	int len = d.data[0];
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
@@ -426,8 +439,14 @@ inline int FileSystem<k, descriptorLength>::getDescriptorByFileName(std::string 
 		readBlock(0, i, buff);
 		for (int j = 0; (j < io.getBlockLength() / 8) && (i*io.getBlockLength() + j * 8 < len); j++) {
 			bool compareVal = true;
-			for (int t = 0; (t < 4) && compareVal; t++)
+			for (int t = 0; (t < 4) && compareVal; t++) {
+				if (t < name.length()){
 				if (buff[j * 8 + t] != name[t]) compareVal = false;
+				}
+				else {
+					if (buff[j * 8 + t] != '\0') compareVal = false;
+				}
+			}
 			if (compareVal) {
 				return getInt(j * 2 + 1, buff);
 			}
