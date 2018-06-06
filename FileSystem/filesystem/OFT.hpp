@@ -7,6 +7,8 @@ struct OFTEntry
 	int currentPosition;
 	int fileDescriptorIndex;
 
+	std::string fileName;
+
 	bool empty;
 
 	const int blockLength = 64; // Should be the same as IOSystem one
@@ -19,6 +21,7 @@ struct OFTEntry
 		clear();
 	}
 
+	void setFileName(std::string _fileName){ fileName = _fileName; }
 	void clear() 
 	{
 		RWBuffer.clear();
@@ -26,6 +29,7 @@ struct OFTEntry
 		currentPosition = -1;
 		fileDescriptorIndex = -1;
 		empty = true;
+		fileName = "";
 	}
 };
 
