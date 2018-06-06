@@ -7,6 +7,7 @@
 void main() {
 	//FileSystemTests::directoryTest();
 	//FileSystemTests::createDestroyTest();  
-	FileSystemTests::OFTTest();
+	//FileSystemTests::OFTTest();
+	FileSystemTests::saveFromFileTest();  
 	return;
 }

@@ -7,6 +7,30 @@
 
 class FileSystemTests: private FileSystem<4,4> {
 public:
+	static void saveToFileTest() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<16, 4> fs(io);
+		fs.clear();
+		fs.createFile("aah");
+		fs.createFile("aat");
+		fs.createFile("aay");
+		fs.createFile("aai");
+		fs.toFile("test.txt");
+
+		std::cout << fs.metadataToPrettyString();
+
+		system("pause");
+	}
+	static void saveFromFileTest() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<16, 4> fs(io);
+		fs.clear();
+		fs.fromFile("test.txt");
+		std::cout << fs.metadataToPrettyString();
+		system("pause");
+	}
 	static void createDestroyTest() {
 		LDisk disk;
 		IOSystem io(disk);
