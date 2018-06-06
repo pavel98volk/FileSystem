@@ -51,7 +51,7 @@ public:
 
 	int openFile(std::string name);
 
-	bool closeFile(int fileDescriptorIndex);
+	std::string closeFile(int fileDescriptorIndex);
 	
 	int getOFTEntry(int fileDescriptorIndex);
 
@@ -286,6 +286,7 @@ inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 	oft.entries[oftEntry].clear();
 	oft.entries[oftEntry].currentPosition = 0;
 	oft.entries[oftEntry].fileDescriptorIndex = descriptor;
+	oft.entries[oftEntry].setFileName(name);
 
 	if (meta.getDescriptor(descriptor).data[0] != 0)
 	{
@@ -297,9 +298,11 @@ inline int FileSystem<k, descriptorLength>::openFile(std::string name)
 }
 
 template<int k, int descriptorLength>
-inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
+inline std::string FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 {
+	if (oftEntryIndex >= 4) return "error";
 	OFTEntry &entry = oft.entries[oftEntryIndex];
+	std::string temp = entry.fileName;
 
 	int len = meta.getDescriptor(entry.fileDescriptorIndex).data[0];
 	int blockNum = (len + (io.getBlockLength() - 1)) / io.getBlockLength();
@@ -315,7 +318,7 @@ inline bool FileSystem<k, descriptorLength>::closeFile(int oftEntryIndex)
 
 	entry.clear();
 
-	return 1;
+	return temp;
 }
 
 template<int k, int descriptorLength>
