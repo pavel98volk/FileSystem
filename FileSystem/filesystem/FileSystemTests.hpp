@@ -41,7 +41,8 @@ public:
 		fs.createFile("aata");
 		fs.createFile("aaya");
 		fs.createFile("aaia");
-		//fs.destroyFile("aata");
+		fs.destroyFile("aata");
+		fs.destroyFile("aata");
 		fs.createFile("alka"); 
 		fs.createFile("asda");
 		/*fs.createFile("aal");
@@ -104,7 +105,7 @@ public:
 		fs.createFile("aah");
 		fs.createFile("aat");
 		fs.createFile("aay");
-		fs.createFile("aai");
+		fs.createFile("aai")	;
 		
 		int index = fs.openFile("aay");
 		char* data = new char[100];
@@ -146,4 +147,58 @@ public:
 		}
 		system("pause");
 	}
+	static void createWithSameName() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<4, 4> fs(io);
+		fs.clear();
+
+		fs.createFile("aah");
+		fs.createFile("aat");
+		fs.createFile("aay"); 
+		fs.createFile("aah");
+		fs.createFile("aat");
+		fs.createFile("aay");
+
+		std::vector<std::pair<std::string, int>> r = fs.directory();
+		for (std::pair<std::string, int> p : r) {
+			std::cout << p.first << " " << p.second << " \n";
+		}
+		system("pause");
+	}
+	static void openOpened() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<4, 4> fs(io);
+		fs.clear();
+
+		fs.createFile("aah");
+		fs.openFile("aah");
+		fs.openFile("aah");
+		system("pause");
+	}
+	static void closeNotOpened() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<4, 4> fs(io);
+		fs.clear();
+		std::string check = fs.closeFile(0);
+		if (check != "error")
+			std::cout << "File " << check << " closed\n";
+		else std::cout << "cann't close this file\n";
+
+		system("pause");
+
+	}
+	static void deleteDeleted() {
+		LDisk disk;
+		IOSystem io(disk);
+		FileSystem<4, 4> fs(io);
+		fs.clear();
+		bool check = fs.destroyFile("ddd");
+		if (check)
+			std::cout << "file ddd deleted\n";
+		else std::cout << "error occured\n";
+	}
+
 };
