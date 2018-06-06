@@ -1,5 +1,6 @@
 #pragma once
 #include"filesystem\FileSystem.hpp"
+#include"filesystem\FileSystemTests.hpp"
 
 void shell()
 {
@@ -11,12 +12,21 @@ void shell()
 	{
 		std::getline(std::cin, command);
 		std::string temp = command.substr(0, 2);
+
 		if (temp == "cr"){
-			std::string name = command.substr(3, command.size() - 1);
-			bool check = fs->createFile(name);
-			if (check)
-				std::cout << "File " << name << " created\n";
-			else std::cout << "error occured\n";
+			std::string name = "";
+			try {
+				name = command.substr(3, command.size() - 1);
+			}
+			catch (std::exception e){
+				std::cout << "wrong input!\n";
+			}
+			if (name != "") {
+				bool check = fs->createFile(name);
+				if (check)
+					std::cout << "File " << name << " created\n";
+				else std::cout << "error occured\n";
+			} 
 		}
 		else if (temp == "de"){
 			std::string name = command.substr(3, command.size() - 1);
@@ -61,6 +71,7 @@ void shell()
 			}
 			index = stoi(newTemp);
 			count = stoi(command.substr(++i, command.size() - 1));
+			
 			if (fs->read(index, text, count))
 				std::cout << count << " bytes read : " << text << std::endl;
 			else std::cout << "error occured\n";
@@ -121,8 +132,7 @@ void shell()
 			std::cout << "You successfully executed \"sv\" command!\n";
 		}
 		else if (temp == "ex"){
-			temp += command.at(2);
-			if (temp == "ext") break;
+			break;
 		}
 		else if (temp == "qq") {
 			std::cout << "----------------------------------\n";
@@ -135,7 +145,13 @@ void shell()
 				if (command.at(i) == ' ') break;
 				temp+= command.at(i);
 			}
-			fs->toFile(temp);
+			if (temp == "") {
+				std::cout << " specify the name of the restore file.\n";
+			}
+			else {
+				fs->toFile(temp);
+				std::cout << "restore file created.\n";
+			}
 		}
 		else if (temp == "fr") {
 			std::string temp = "";
@@ -144,6 +160,9 @@ void shell()
 				temp += command.at(i);
 			}
 			fs->fromFile(temp);
+		}
+		else if (temp == "te") {
+			FileSystemTests::allTests();
 		}
 		else {
 			std::cout << "|||| command was not found !\n";

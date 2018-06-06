@@ -6,27 +6,6 @@
 #include "OFT.hpp"
 #include <fstream>
 
-/*information
-  1)only the 4 first letters of file name are saved. Files with shorter filenames can sometimes be complemented with randomm symbols.
-
- */
- /*
-
- */
- /*done
-	simple console visualization   // metadataToPrettyString();
-	file creation  
-	ability to change/destroy_last/push_back blocks of a particular file.
-	-destroying files;
-	-working with files (open, close);
- */
-/*todo
-	-read
-	-write
-	
-	-handle or get rid of exceptions (from Metadata class)
-
-*/
 
 
 
@@ -226,7 +205,9 @@ bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 	}
 	if (descrPos == 0) return false;
 	//now that we found we can close this file if it is opened
-	// opened file exeption
+	if(getOFTEntry(descrPos)>=0)  closeFile(getOFTEntry(descrPos));
+
+
 	if ((len - 3)% io.getBlockLength() < (len - 1) % io.getBlockLength())
 		removeLastBlock(0);
 	meta.setDescriptorData(0, 0, (d.data[0] - 8));
@@ -464,9 +445,8 @@ inline void FileSystem<k, descriptorLength>::fromFile(std::string name)
 	std::vector<char> buff; buff.resize(io.getBlockLength());
 	for (int i = 0; i < io.getBlockCount(); i++) {
 		for (int j = 0; j < io.getBlockLength(); j++) {
-			int temp;
-			myfile >> temp;
-			buff[j] = temp - 128;
+			unsigned char temp;
+			myfile >> buff[j];
 		}
 		io.writeBlock(i,buff);
 	}

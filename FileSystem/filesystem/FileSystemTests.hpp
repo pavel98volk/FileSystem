@@ -1,5 +1,5 @@
 
-
+#pragma once;
 #include ".\FileSystem.hpp"
 #include "..\disk\LDisk.hpp"
 #include "..\iosystem\IOSystem.hpp"
@@ -7,7 +7,11 @@
 
 class FileSystemTests: private FileSystem<4,4> {
 public:
-	static void saveToFileTest() {
+	static void allTests() {
+		std::cout << "------------------------------\n";
+			std::cout << "-closeNotOpened-----------"<< closeNotOpened();
+	}
+	static bool saveToFileTest() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<16, 4> fs(io);
@@ -21,8 +25,9 @@ public:
 		std::cout << fs.metadataToPrettyString();
 
 		system("pause");
+		return true;
 	}
-	static void saveFromFileTest() {
+	static bool saveFromFileTest() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<16, 4> fs(io);
@@ -30,8 +35,9 @@ public:
 		fs.fromFile("test.txt");
 		std::cout << fs.metadataToPrettyString();
 		system("pause");
+		return true;
 	}
-	static void createDestroyTest() {
+	static bool createDestroyTest() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<16, 4> fs(io);
@@ -95,9 +101,9 @@ public:
 		fs.createFile("eaq");
 		fs.createFile("eat");*/
 		std::cout << fs.metadataToPrettyString();
-		system("pause");
+		return true;
 	}
-	static void OFTTest() {
+	static bool OFTTest() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<16, 4> fs(io);
@@ -124,10 +130,10 @@ public:
 		std::cout << data << '\n';
 		std::cout<<fs.closeFile(index) << '\n';
 
-		system("pause");
-
+		
+		return true;
 	}
-	static void directoryTest() {
+	static bool directoryTest() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<4, 4> fs(io);
@@ -145,9 +151,9 @@ public:
 		for (std::pair<std::string, int> p : r) {
 			std::cout << p.first << " " << p.second << " \n";
 		}
-		system("pause");
+		return true;
 	}
-	static void createWithSameName() {
+	static bool createWithSameName() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<4, 4> fs(io);
@@ -164,9 +170,9 @@ public:
 		for (std::pair<std::string, int> p : r) {
 			std::cout << p.first << " " << p.second << " \n";
 		}
-		system("pause");
+		return true;
 	}
-	static void openOpened() {
+	static bool openOpened() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<4, 4> fs(io);
@@ -175,9 +181,9 @@ public:
 		fs.createFile("aah");
 		fs.openFile("aah");
 		fs.openFile("aah");
-		system("pause");
+		return true;
 	}
-	static void closeNotOpened() {
+	static bool closeNotOpened() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<4, 4> fs(io);
@@ -186,11 +192,10 @@ public:
 		if (check != "error")
 			std::cout << "File " << check << " closed\n";
 		else std::cout << "cann't close this file\n";
-
-		system("pause");
+		return true;
 
 	}
-	static void deleteDeleted() {
+	static bool deleteDeleted() {
 		LDisk disk;
 		IOSystem io(disk);
 		FileSystem<4, 4> fs(io);
@@ -199,6 +204,7 @@ public:
 		if (check)
 			std::cout << "file ddd deleted\n";
 		else std::cout << "error occured\n";
+		return true;
 	}
 
 };
