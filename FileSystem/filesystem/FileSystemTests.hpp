@@ -190,9 +190,8 @@ public:
 		fs.clear();
 		std::string check = fs.closeFile(0);
 		if (check != "error")
-			std::cout << "File " << check << " closed\n";
-		else std::cout << "cann't close this file\n";
-		return true;
+			return false;
+		else return true;
 
 	}
 	static bool deleteDeleted() {

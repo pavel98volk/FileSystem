@@ -114,7 +114,7 @@ void Metadata<k, descriptorLength>::clear(){
 
 template <int k, int descriptorLength>
 FileDescriptor<descriptorLength> Metadata<k, descriptorLength>::getDescriptor(int pos) {
-	if ((pos < 0) || (pos >= descrArrLen)) throw std::invalid_argument("invalid");
+	if ((pos < 0) || (pos >= descrArrLen)) throw std::exception("invalid descriptor position");
 	FileDescriptor<descriptorLength> d;
 	for (int j = 0; j < (descriptorLength); j++) {
 		d.data.at(j) = getInt((bitsetCharSize + 3) / 4 + descriptorLength * pos + j);
@@ -124,7 +124,7 @@ FileDescriptor<descriptorLength> Metadata<k, descriptorLength>::getDescriptor(in
 
 template <int k, int descriptorLength>
 void Metadata<k, descriptorLength>::setDescriptor(int pos , FileDescriptor<descriptorLength> data) {
-	if ((pos < 0) || (pos >= descrArrLen)) throw std::invalid_argument("invalid ");
+	if ((pos < 0) || (pos >= descrArrLen)) throw std::exception("invalid descriptor position");
 	for (int j = 0; j < descriptorLength; j++)
 		 setInt((bitsetCharSize + 3) / 4 + descriptorLength* pos + j, data.data.at(j));
 }
@@ -206,7 +206,7 @@ int Metadata<k, descriptorLength>::findFreeDescriptor() {
 		}
 	}
 	std::cout << "out of memory";
-	throw std::exception("no free blocks left");
+	throw std::exception("no free desciptors left");
 }
 
 template<int k, int descriptorLength>
