@@ -29,18 +29,34 @@ void shell()
 			} 
 		}
 		else if (temp == "de"){
-			std::string name = command.substr(3, command.size() - 1);
-			bool check = fs->destroyFile(name);
-			if (check)
-				std::cout << "file " << name << " deleted\n";
-			else std::cout << "error occured\n";
+			std::string name = "";
+			try {
+				name = command.substr(3, command.size() - 1);
+			}
+			catch (std::exception e){
+				std::cout << "wrong input!\n";
+			}
+			if (name != ""){
+				bool check = fs->destroyFile(name);
+				if (check)
+					std::cout << "file " << name << " deleted\n";
+				else std::cout << "error occured\n";
+			}
 		}
 		else if (temp == "op"){
-			std::string name = command.substr(3, command.size() - 1);
-			int check = fs->openFile(name);
-			if (check != -1)
-				std::cout << "file " << name << " opened, index : " << check << std::endl;
-			else std::cout << "can't open file\n";
+			std::string name = "";
+			try {
+				name = command.substr(3, command.size() - 1);
+			}
+			catch (std::exception e){
+				std::cout << "wrong input!\n";
+			}
+			if (name != ""){
+				int check = fs->openFile(name);
+				if (check != -1)
+					std::cout << "file " << name << " opened, index : " << check << std::endl;
+				else std::cout << "can't open file\n";
+			}
 		}
 		else if (temp == "cl"){
 			int index = -1;
@@ -61,22 +77,31 @@ void shell()
 			int i;
 			int index;
 			int count;
+			bool check = true;
 			char *text = new char[100];
 			for (int i = 0; i < 100; i++)
 				text[i] = '\0';
 			std::string newTemp;
-			for (i = 3; i < command.size(); i++){
-				if (command.at(i) == ' ') break;
-				newTemp += command.at(i);
+			try {
+				for (i = 3; i < command.size(); i++) {
+					if (command.at(i) == ' ') break;
+					newTemp += command.at(i);
+				}
+				index = stoi(newTemp);
+				count = stoi(command.substr(++i, command.size() - 1));
 			}
-			index = stoi(newTemp);
-			count = stoi(command.substr(++i, command.size() - 1));
-			
-			if (fs->read(index, text, count))
-				std::cout << count << " bytes read : " << text << std::endl;
-			else std::cout << "error occured\n";
+			catch (std::exception e) {
+				std::cout << "wrong input!\n";
+				check = false;
+			}
+			if (check) {
+				if (fs->read(index, text, count))
+					std::cout << count << " bytes read : " << text << std::endl;
+				else std::cout << "error occured\n";
+			}
 		}
 		else if (temp == "wr"){
+			bool check = true;
 			int i;
 			int index;
 			char* mem_area = new char[100];
@@ -84,36 +109,53 @@ void shell()
 				mem_area[i] = '\0';
 			int count;
 			std::string newTemp;
-			for (i = 3; i < command.size(); i++){
-				if (command.at(i) == ' ') break;
-				newTemp += command.at(i);
+			try {
+				for (i = 3; i < command.size(); i++) {
+					if (command.at(i) == ' ') break;
+					newTemp += command.at(i);
+				}
+				index = stoi(newTemp);
+				int j = 0;
+				while (++i < command.size()) {
+					if (command.at(i) == ' ') break;
+					mem_area[j] = command.at(i);
+					j++;
+				}
+				count = stoi(command.substr(++i, command.size() - 1));
 			}
-			index = stoi(newTemp);
-			int j = 0;
-			while (++i < command.size()){
-				if (command.at(i) == ' ') break;
-				mem_area[j] = command.at(i);
-				j++;
+			catch (std::exception e) {
+				std::cout << "wrong input!\n";
+				check = false;
 			}
-			count = stoi(command.substr(++i, command.size() - 1));
-			if (fs->write(index, mem_area, count))
-				std::cout << count << " bytes written\n";
-			else std::cout << "error occured\n";
+			if (check) {
+				if (fs->write(index, mem_area, count))
+					std::cout << count << " bytes written\n";
+				else std::cout << "error occured\n";
+			}
 		}
 		else if (temp == "sk"){
+			bool check = true;
 			int i;
 			int index;
 			int pos;
 			std::string newTemp;
-			for (i = 3; i < command.size(); i++){
-				if (command.at(i) == ' ') break;
-				newTemp += command.at(i);
+			try {
+				for (i = 3; i < command.size(); i++) {
+					if (command.at(i) == ' ') break;
+					newTemp += command.at(i);
+				}
+				index = stoi(newTemp);
+				pos = stoi(command.substr(++i, command.size() - 1));
 			}
-			index = stoi(newTemp);
-			pos = stoi(command.substr(++i, command.size() - 1));
-			if (fs->lseek(index, pos))
-				std::cout << "current position is " << pos << std::endl;
-			else std::cout << "error occured\n";
+			catch (std::exception e) {
+				std::cout << "wrong input!\n";
+				check = false;
+			}
+			if (check) {
+				if (fs->lseek(index, pos))
+					std::cout << "current position is " << pos << std::endl;
+				else std::cout << "error occured\n";
+			}
 		}
 		else if (temp == "dr"){
 			std::vector<std::pair<std::string, int>> r = fs->directory();
@@ -141,25 +183,33 @@ void shell()
 		}
 		else if (temp == "fs") {
 			std::string temp="";
-			for (int i = 3; i < command.size(); i++) {
-				if (command.at(i) == ' ') break;
-				temp+= command.at(i);
+			try {
+				for (int i = 3; i < command.size(); i++) {
+					if (command.at(i) == ' ') break;
+					temp += command.at(i);
+				}
 			}
-			if (temp == "") {
-				std::cout << " specify the name of the restore file.\n";
+			catch (std::exception e) {
+				std::cout << "specify the name of the restore file.\n";
 			}
-			else {
+			if (temp != "") {
 				fs->toFile(temp);
 				std::cout << "restore file created.\n";
 			}
 		}
 		else if (temp == "fr") {
 			std::string temp = "";
-			for (int i = 3; i < command.size(); i++) {
-				if (command.at(i) == ' ') break;
-				temp += command.at(i);
+			try {
+				for (int i = 3; i < command.size(); i++) {
+					if (command.at(i) == ' ') break;
+					temp += command.at(i);
+				}
 			}
-			fs->fromFile(temp);
+			catch (std::exception e) {
+				std::cout << "wrong input!\n";
+			}
+			if(temp!="")
+				fs->fromFile(temp);
 		}
 		else if (temp == "te") {
 			FileSystemTests::allTests();
