@@ -21,12 +21,15 @@ void shell()
 			catch (std::exception e){
 				std::cout << "wrong input!\n";
 			}
-			if (name != "") {
+			if (name != "" && name.size() <= 4) {
 				bool check = fs->createFile(name);
 				if (check)
 					std::cout << "File " << name << " created\n";
 				else std::cout << "error occured\n";
-			} 
+			}
+			else {
+				std::cout << "invalid file length.\n";
+			}
 		}
 		else if (temp == "de"){
 			std::string name = "";
@@ -36,11 +39,14 @@ void shell()
 			catch (std::exception e){
 				std::cout << "wrong input!\n";
 			}
-			if (name != ""){
+			if (name != "" && name.size() <= 4){
 				bool check = fs->destroyFile(name);
 				if (check)
-					std::cout << "file " << name << " deleted\n";
+					std::cout << "file " << name<< " deleted\n";
 				else std::cout << "error occured\n";
+			}
+			else {
+				std::cout << "Invalid name lengh!\n";
 			}
 		}
 		else if (temp == "op"){
@@ -217,6 +223,5 @@ void shell()
 		else {
 			std::cout << "|||| command was not found !\n";
 		}
-
 	}
 }

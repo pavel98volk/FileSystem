@@ -180,8 +180,15 @@ bool FileSystem<k, descriptorLength>::destroyFile(std::string name) {
 		for (int j = 0; (j < io.getBlockLength() / 8) && (i*io.getBlockLength() + j * 8 < len); j++) {
 			if (!found) {
 				bool compareVal = true;
-				for (int t = 0; (t < 4) && compareVal; t++)
-					if (buff[j * 8 + t] != name[t]) compareVal = false;
+				for (int t = 0; (t < 4) && compareVal; t++) {
+					if (t < name.length()) {
+						if (buff[j * 8 + t] != name[t]) compareVal = false;
+					}
+					else {
+						if (buff[j * 8 + t] != '\0') compareVal = false;
+					}
+				}
+					
 				if (compareVal) {
 					found = true;
 					descrPos = getInt(j * 2 + 1, buff);
@@ -451,7 +458,6 @@ inline void FileSystem<k, descriptorLength>::fromFile(std::string name)
 	std::vector<char> buff; buff.resize(io.getBlockLength());
 	for (int i = 0; i < io.getBlockCount(); i++) {
 		for (int j = 0; j < io.getBlockLength(); j++) {
-			unsigned char temp;
 			myfile >> buff[j];
 		}
 		io.writeBlock(i,buff);
